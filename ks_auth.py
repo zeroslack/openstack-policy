@@ -19,6 +19,16 @@ auth_args = {
         'username': username,
 }
 
+try:
+    trust_id = environ['OS_TRUST_ID']
+    auth_args['trust_id'] = trust_id
+    #conflicts = ['project_domain_name', 'project_name', 'user_domain_name']
+    conflicts = ['project_name']
+    for var in conflicts:
+        del auth_args[var]
+except KeyError:
+    pass
+
 plugin = v3.Password
 auth = plugin(**auth_args)
 sess = Session(auth=auth)
