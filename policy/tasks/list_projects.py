@@ -11,7 +11,7 @@ print('* All Projects *')
 print(ks.projects.list())
 
 # identity:list_users
-users = ks.users.list()
+users = ks.users.list()[:3]
 for u in users:
     print('* Projects for %s:' % u.name)
     # identity:list_user_projects
