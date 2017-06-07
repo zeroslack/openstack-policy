@@ -16,7 +16,7 @@ if __name__ == '__main__':
 
     # Make sure to match authenticated user
     trustor = ks.auth.client.get_user_id()
-    impersonate = True
+    impersonate = False
 
     for project in projects:
         project_id = project.id
