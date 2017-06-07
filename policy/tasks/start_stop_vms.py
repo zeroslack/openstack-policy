@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from ks_auth import sess
+from ks_auth import trust_auth
 from ks_auth import ks
 from novaclient import client
 from novaclient import exceptions
@@ -42,7 +43,7 @@ def initial_auth_info(session, auth_filter=lambda x: x[0] == 'password'):
     filtered = filter(auth_filter, auth_data)
     for authtype, params in filtered:
         try:
-            del params['user']['password']
+            params['user']['password'] = '****'
         except KeyError:
             pass
         ret.append((authtype, params))
@@ -74,6 +75,15 @@ print(user_servers)
 target_servers = filter(lambda x: x.user_id == user.id, user_servers)
 print('Targeting:')
 print(target_servers)
+
+# switch to trust-based auth here
+# N.B. seems impersonation is broken?? - see accessinfo output
+print('Switching to trust-based auth')
+sess.auth = trust_auth
+# print access info again
+print('Access Info:')
+for k, v in access_info_vars(sess).iteritems():
+    print('* {}: {}'.format(k, v))
 
 for server in target_servers:
     try:
