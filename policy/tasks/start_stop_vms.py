@@ -49,6 +49,16 @@ def initial_auth_info(session, auth_filter=lambda x: x[0] == 'password'):
         ret.append((authtype, params))
     return ret
 
+
+def poll_server(server, interval=2, *args, **kwargs):
+    while True:
+        yield nova.servers.get(server.id)
+        sleep(interval)
+
+
+def is_active(server):
+    return (server.state == 'ACTIVE')
+
 # Print some info
 print('Initial Auth Info:')
 for authtype, params in initial_auth_info(ks.auth.client.session):
@@ -89,6 +99,9 @@ for server in target_servers:
     try:
         print('* Stopping %s' % server.name)
         server.stop()
+        for state in poll_server(server):
+            if is_active(state):
+                print '** shutting down...'
     except exceptions.Conflict, e:
         target_msg = r' it is in vm_state stopped'
         if e.message.find(target_msg) != -1:
