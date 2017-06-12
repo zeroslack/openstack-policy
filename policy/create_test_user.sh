@@ -33,6 +33,8 @@ export OS_VOLUME_API_VERSION=2
 EoF
 }
 
+exec 3>&1
+exec 1>&2
 # create the project
 openstack project create --or-show $project_name
 # create the user
@@ -42,4 +44,5 @@ openstack user create --or-show --project $project_name --password $password \
 for rolename in ${roles[@]}; do
 	openstack role add --project $project_name --user $testuser $rolename
 done
-dump_openrc
+dump_openrc >&3
+exec 3>&-
