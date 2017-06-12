@@ -4,6 +4,7 @@ from ks_auth import trust_auth
 from ks_auth import ks
 from novaclient import client
 from novaclient import exceptions
+from time import sleep
 # RDTIBCC-983
 # Satisfies Requirements:
 #  - start a vm
@@ -17,6 +18,7 @@ username = 'standard_user'
 search_opts = {
     'all_tenants': True
 }
+
 
 def access_info_vars(session):
     """Expects keystoneclient.session.Session"""
@@ -48,6 +50,16 @@ def initial_auth_info(session, auth_filter=lambda x: x[0] == 'password'):
             pass
         ret.append((authtype, params))
     return ret
+
+
+def poll_server(server, interval=2, limit=4, *args, **kwargs):
+    for i in range(0, limit):
+        yield nova.servers.get(server.id)
+        sleep(interval)
+
+
+def is_active(server):
+    return (server.status == 'ACTIVE')
 
 # Print some info
 print('Initial Auth Info:')
@@ -85,14 +97,22 @@ print('Access Info:')
 for k, v in access_info_vars(sess).iteritems():
     print('* {}: {}'.format(k, v))
 
+retry_count = 3
 for server in target_servers:
     try:
         print('* Stopping %s' % server.name)
-        server.stop()
+        for i in range(1, retry_count+1):
+            print('** Attempt %d' % i)
+            server.stop()
+            for state in poll_server(server):
+                # TODO(kamidzi): still maybe race condition with SHUTOFF state.
+                # print state.status
+                if is_active(state):
+                    print '*** shutting down...'
     except exceptions.Conflict, e:
         target_msg = r' it is in vm_state stopped'
         if e.message.find(target_msg) != -1:
-            print('** skipping stop action - already stopped.')
+            print('*** skipping stop action - already stopped.')
         else:
             raise
     print('* Starting %s' % server.name)
