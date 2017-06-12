@@ -9,3 +9,4 @@ PATH=/bin:/usr/bin:/sbin:/usr/sbin:$dir
 set -x 
 create_test_user.sh | tee openrc
 . /root/adminrc && python rbp.py
+create_test_instances.sh

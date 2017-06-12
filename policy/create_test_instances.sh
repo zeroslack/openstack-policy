@@ -10,8 +10,8 @@ dump_openrc(){
 export OS_PROJECT_NAME=$project_name
 export OS_USERNAME=$username
 export OS_PASSWORD=$password
-export OS_AUTH_URL=https://openstack.bcpc.example.com:5000/v3/
-export OS_REGION_NAME=Test-Laptop-Vagrant
+export OS_AUTH_URL=${OS_AUTH_URL:-https://openstack.bcpc.example.com:5000/v3/}
+export OS_REGION_NAME=${OS_REGION_NAME:-Test-Laptop-Vagrant}
 export OS_NO_CACHE=1
 export OS_PROJECT_DOMAIN_NAME=default
 export OS_USER_DOMAIN_NAME=default
@@ -31,9 +31,15 @@ for rolename in ${roles[@]}; do
 	openstack role add --project $project_name --user $username $rolename
 done
 
+rc_file=user-rc
 # switch creds
-eval $(dump_openrc)
+dump_openrc > "$rc_file"
+. "$rc_file"
 # create the instances
 flavor='generic1.small'
 image='Cirros 0.3.4 x86_64'
-openstack server create --flavor $flavor --image "$image" --wait test_server1
+instances=( test_server1 )
+for i in ${instances[@]}; do
+	openstack server show $i || \
+		openstack server create --flavor $flavor --image "$image" --wait $i
+done
