@@ -1,2 +1,2 @@
-# keystone-misc
-Keystone API miscellany
+# openstack-policy
+Openstack API miscellany wrt policy
