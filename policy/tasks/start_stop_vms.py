@@ -58,8 +58,8 @@ def poll_server(server, interval=2, limit=4, *args, **kwargs):
         sleep(interval)
 
 
-def is_active(server):
-    return (server.status == 'ACTIVE')
+def is_shutoff(server):
+    return (server.status == 'SHUTOFF')
 
 # Print some info
 print('Initial Auth Info:')
@@ -99,16 +99,20 @@ for k, v in access_info_vars(sess).iteritems():
 
 retry_count = 3
 for server in target_servers:
+    stopped = False
     try:
         print('* Stopping %s' % server.name)
         for i in range(1, retry_count+1):
+            if stopped:
+                break
             print('** Attempt %d' % i)
             server.stop()
             for state in poll_server(server):
                 # TODO(kamidzi): still maybe race condition with SHUTOFF state.
-                # print state.status
-                if is_active(state):
-                    print '*** shutting down...'
+                if is_shutoff(state):
+                    stopped = True
+                    break
+                print '*** shutting down...'
     except exceptions.Conflict, e:
         target_msg = r' it is in vm_state stopped'
         if e.message.find(target_msg) != -1:
