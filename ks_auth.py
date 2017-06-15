@@ -19,6 +19,9 @@ auth_args = {
         'username': username,
 }
 
+plugin = v3.Password
+
+# Add trust auth if possible
 try:
     trust_auth_args = dict(auth_args)
     trust_id = environ['OS_TRUST_ID']
@@ -27,11 +30,10 @@ try:
     conflicts = ['project_name']
     for var in conflicts:
         del trust_auth_args[var]
+    trust_auth = plugin(**trust_auth_args)
 except KeyError:
-    pass
+    trust_auth = None
 
-plugin = v3.Password
 auth = plugin(**auth_args)
-trust_auth = plugin(**trust_auth_args)
 sess = Session(auth=auth)
 ks = client.Client(session=sess)
