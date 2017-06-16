@@ -1,5 +1,5 @@
 def render_obj(attrs=[]):
-    def inner(objname):
+    def inner(objname, *args, **kwargs):
         return dict(filter(lambda x: x[0] in attrs,
                            objname.__dict__.iteritems()))
     return inner
