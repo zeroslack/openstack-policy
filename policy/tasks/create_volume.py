@@ -83,11 +83,14 @@ if __name__ == '__main__':
 
         print('Creating volume')
         print(' with: %s' % vol)
+        # NB(kamidzi): os-vol-* attrs appear later
         vol = cinder.volumes.create(**vol)
         for state in poll_volume(vol):
-            if str(state.status).lower() == 'active':
+            # wait for tenant_id attribute
+            if str(state.status).lower() == 'available' \
+                and hasattr(vol, 'os-vol-tenant-attr:tenant_id'):
                 break
-        print(render_volume(vol))
+        pprint(render_volume(vol))
         print('Listing volumes')
         vols = {
             'cinderclient': cinder.volumes.list(),
