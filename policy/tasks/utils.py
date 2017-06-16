@@ -26,5 +26,7 @@ render_volume = render_obj(
         'size',
         'user_id',
         'volume_type',
+        'os-vol-tenant-attr:tenant_id',
+        'status'
     ]
 )
