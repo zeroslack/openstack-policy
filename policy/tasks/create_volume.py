@@ -54,6 +54,10 @@ def poll_volume(volume, interval=2, limit=4, *args, **kwargs):
 
 
 if __name__ == '__main__':
+    version = 2
+    nova = nclient.Client(version, session=sess)
+    cinder = cclient.Client(version, session=sess)
+
     def dump_accessinfo():
         for k, v in access_info_vars(sess).iteritems():
             print('* {}: {}'.format(k, v))
@@ -71,10 +75,11 @@ if __name__ == '__main__':
         }
         vol.update(extras)
         print('Listing volumes')
-        print('* using cinderclient:')
-        cinder.volumes.list()
-        print('* using novaclient:')
-        nova.volumes.list()
+        vols = {
+            'cinderclient': cinder.volumes.list(),
+            'novaclient': nova.volumes.list()
+        }
+        pprint(vols)
 
         print('Creating volume')
         print(' with: %s' % vol)
@@ -84,10 +89,11 @@ if __name__ == '__main__':
                 break
         print(render_volume(vol))
         print('Listing volumes')
-        print('* using cinderclient:')
-        cinder.volumes.list()
-        print('* using novaclient:')
-        nova.volumes.list()
+        vols = {
+            'cinderclient': cinder.volumes.list(),
+            'novaclient': nova.volumes.list()
+        }
+        pprint(vols)
 
     print('Initial Auth Info:')
     for authtype, params in initial_auth_info(ks.auth.client.session):
@@ -95,9 +101,6 @@ if __name__ == '__main__':
         print('  %s' % params)
     dump_accessinfo()
 
-    version = 2
-    nova = nclient.Client(version, session=sess)
-    cinder = cclient.Client(version, session=sess)
     print('Nova API: %s' % nova.api_version)
     test()
 
