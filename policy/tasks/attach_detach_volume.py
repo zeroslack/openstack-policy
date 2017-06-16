@@ -7,6 +7,7 @@ from cinderclient import client as cclient
 from novaclient import exceptions
 from pprint import pprint
 from time import sleep
+from utils import *
 import sys
 
 VERSION = '2'
@@ -48,13 +49,6 @@ def poll_volume(volume, interval=2, limit=4, *args, **kwargs):
         sleep(interval)
 
 
-def render_obj(attrs=[]):
-    def inner(objname):
-        return dict(filter(lambda x: x[0] in attrs,
-                           objname.__dict__.iteritems()))
-    return inner
-
-
 if __name__ == '__main__':
     try:
         instance_id = sys.argv[1]
@@ -63,30 +57,6 @@ if __name__ == '__main__':
 
     nova = nclient.Client(VERSION, session=sess)
     cinder = cclient.Client(VERSION, session=sess)
-
-    render_vol_attachment = render_obj(
-        attrs = [
-            'device',
-            'id',
-            'serverId',
-            'volumeId',
-        ]
-    )
-
-    render_volume = render_obj(
-        attrs = [
-            'description',
-            'id',
-            'imageRef',
-            'instance',
-            'metadata',
-            'name',
-            'project_id',
-            'size',
-            'user_id',
-            'volume_type',
-        ]
-    )
 
     def dump_accessinfo():
         for k, v in access_info_vars(sess).iteritems():
@@ -106,8 +76,9 @@ if __name__ == '__main__':
         vol.update(extras)
         print('Creating volume')
         vol = cinder.volumes.create(**vol)
-        for state in poll_volume(vol):
-            if str(state.status).lower() == 'active':
+        for state in poll_volume(vol, interval=3):
+            if str(state.status).lower() == 'available' \
+                and hasattr(vol, 'os-vol-tenant-attr:tenant_id'):
                 break
         print(render_volume(vol))
 
