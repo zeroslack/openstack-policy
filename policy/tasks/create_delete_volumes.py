@@ -10,6 +10,7 @@ from novaclient import client as nclient
 from novaclient import exceptions
 from pprint import pprint
 from time import sleep
+from utils import *
 import sys
 
 VERSION = '2'
@@ -53,22 +54,6 @@ def poll_volume(volume, interval=2, limit=4, *args, **kwargs):
 
 
 if __name__ == '__main__':
-
-    def render_volume(vol):
-        attrs = [
-            'size',
-            'name',
-            'description',
-            'volume_type',
-            'user_id',
-            'project_id',
-            'metadata',
-            'imageRef',
-            'by',
-            'instance',
-        ]
-        return dict(filter(lambda x: x[0] in attrs, vol.__dict__.iteritems()))
-
     def dump_accessinfo():
         for k, v in access_info_vars(sess).iteritems():
             print('* {}: {}'.format(k, v))
@@ -86,29 +71,38 @@ if __name__ == '__main__':
         }
         vol.update(extras)
         print('Listing volumes')
-        print('* using cinderclient:')
-        cinder.volumes.list()
-        print('* using novaclient:')
-        nova.volumes.list()
-
+        vols = {
+            'cinderclient': cinder.volumes.list(),
+            'novaclient': nova.volumes.list()
+        }
+        pprint(vols)
         print('Creating volume')
         print(' with: %s' % vol)
         vol = cinder.volumes.create(**vol)
-        for state in poll_volume(vol):
-            if str(state.status).lower() == 'active':
+        for state in poll_volume(vol, interval=3, limit=5):
+            if str(state.status).lower() == 'available' \
+                and hasattr(vol, 'os-vol-tenant-attr:tenant_id'):
                 break
         print(render_volume(vol))
         print('Listing volumes')
-        print('* using cinderclient:')
-        cinder.volumes.list()
-        print('* using novaclient:')
-        nova.volumes.list()
+        vols = {
+            'cinderclient': cinder.volumes.list(),
+            'novaclient': nova.volumes.list()
+        }
+        pprint(vols)
         print('Deleting volume')
         vol.delete()
-        print('* using cinderclient:')
-        cinder.volumes.list()
-        print('* using novaclient:')
-        nova.volumes.list()    # Print some info
+        try:
+            # wait for volume to leave 'deleting' state
+            for state in poll_volume(vol): pass
+        except exceptions.NotFound:
+            print('* volume deleted')
+        print('Listing volumes')
+        vols = {
+            'cinderclient': cinder.volumes.list(),
+            'novaclient': nova.volumes.list()
+        }
+        pprint(vols)
 
     print('Initial Auth Info:')
     for authtype, params in initial_auth_info(ks.auth.client.session):
