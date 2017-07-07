@@ -3,7 +3,6 @@ from ks_auth import ks
 import sys
 import config
 
-trustee = config.trustee
 if __name__ == '__main__':
     try:
         trustee_id = sys.argv[1]
