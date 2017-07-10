@@ -5,6 +5,10 @@
 
     "admin_api": "is_admin:True",
 
+    "service": "role:service",
+    "service_admin": "role:service or role:admin",
+    "service_admin_or_owner": "rule:service_admin or rule:admin_or_owner",
+
     "volume:create": "",
     "volume:delete": "rule:admin_or_owner",
     "volume:get": "rule:admin_or_owner",
@@ -33,8 +37,8 @@
     "volume_extension:extended_snapshot_attributes": "rule:admin_or_owner",
     "volume_extension:volume_image_metadata": "rule:admin_or_owner",
 
-    "volume_extension:quotas:show": "",
-    "volume_extension:quotas:update": "rule:admin_api",
+    "volume_extension:quotas:show": "rule:service_admin",
+    "volume_extension:quotas:update": "rule:service_admin",
     "volume_extension:quota_classes": "rule:admin_api",
 
     "volume_extension:volume_admin_actions:reset_status": "rule:admin_api",
