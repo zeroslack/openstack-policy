@@ -2,6 +2,7 @@
 from ks_auth import ks
 from ks_auth import sess
 from ks_auth import trust_auth
+from ks_auth import utils
 from novaclient import client as nclient
 from cinderclient import client as cclient
 from novaclient import exceptions
@@ -11,37 +12,6 @@ from utils import *
 import sys
 
 VERSION = '2'
-
-
-def access_info_vars(session):
-    """Expects keystoneclient.session.Session"""
-    to_return = [
-        'trust_id',
-        'trust_scoped',
-        'trustee_user_id',
-        'trustor_user_id',
-        'user_domain_name',
-        'username',
-    ]
-    ai = ks.auth.client.session.auth.get_access(sess)
-    ret = map(lambda k: (k, getattr(ai, k)), to_return)
-    return dict(ret)
-
-
-def initial_auth_info(session, auth_filter=lambda x: x[0] == 'password'):
-    ret = []
-    auth = session.auth
-    auth_data = map(lambda x: x.get_auth_data(session, auth, {}),
-                    auth.auth_methods)
-    filtered = filter(auth_filter, auth_data)
-    for authtype, params in filtered:
-        try:
-            params['user']['password'] = '****'
-        except KeyError:
-            pass
-        ret.append((authtype, params))
-    return ret
-
 
 def poll_volume(volume, interval=2, limit=4, *args, **kwargs):
     for i in range(0, limit):
@@ -59,7 +29,7 @@ if __name__ == '__main__':
     cinder = cclient.Client(VERSION, session=sess)
 
     def dump_accessinfo():
-        for k, v in access_info_vars(sess).iteritems():
+        for k, v in utils.access_info_vars(sess).iteritems():
             print('* {}: {}'.format(k, v))
 
     def test():
@@ -110,7 +80,7 @@ if __name__ == '__main__':
             vol.delete()
 
     print('Initial Auth Info:')
-    for authtype, params in initial_auth_info(ks.auth.client.session):
+    for authtype, params in utils.initial_auth_info(ks.auth.client.session):
         print(' %s' % authtype)
         print('  %s' % params)
     dump_accessinfo()

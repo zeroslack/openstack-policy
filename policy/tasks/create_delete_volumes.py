@@ -1,50 +1,22 @@
 #!/usr/bin/env python
 # RDTIBCC-983
 # Satisfies Requirements:
+
 from cinderclient import client as cclient
 from ks_auth import ks
 from ks_auth import sess
 from ks_auth import trust_auth
+from ks_auth import utils
 from novaclient import client
 from novaclient import client as nclient
-from novaclient import exceptions
 from pprint import pprint
 from time import sleep
 from utils import *
+import cinderclient.exceptions
+import novaclient.exceptions
 import sys
-
 VERSION = '2'
 nova = client.Client(VERSION, session=sess)
-
-
-def access_info_vars(session):
-    """Expects keystoneclient.session.Session"""
-    to_return = [
-        'trust_id',
-        'trust_scoped',
-        'trustee_user_id',
-        'trustor_user_id',
-        'user_domain_name',
-        'username',
-    ]
-    ai = ks.auth.client.session.auth.get_access(sess)
-    ret = map(lambda k: (k, getattr(ai, k)), to_return)
-    return dict(ret)
-
-
-def initial_auth_info(session, auth_filter=lambda x: x[0] == 'password'):
-    ret = []
-    auth = session.auth
-    auth_data = map(lambda x: x.get_auth_data(session, auth, {}),
-                    auth.auth_methods)
-    filtered = filter(auth_filter, auth_data)
-    for authtype, params in filtered:
-        try:
-            params['user']['password'] = '****'
-        except KeyError:
-            pass
-        ret.append((authtype, params))
-    return ret
 
 
 def poll_volume(volume, interval=2, limit=4, *args, **kwargs):
@@ -55,7 +27,7 @@ def poll_volume(volume, interval=2, limit=4, *args, **kwargs):
 
 if __name__ == '__main__':
     def dump_accessinfo():
-        for k, v in access_info_vars(sess).iteritems():
+        for k, v in utils.access_info_vars(sess).iteritems():
             print('* {}: {}'.format(k, v))
 
     def test():
@@ -78,25 +50,33 @@ if __name__ == '__main__':
         pprint(vols)
         print('Creating volume')
         print(' with: %s' % vol)
-        vol = cinder.volumes.create(**vol)
-        for state in poll_volume(vol, interval=3, limit=5):
-            if str(state.status).lower() == 'available' \
-                and hasattr(vol, 'os-vol-tenant-attr:tenant_id'):
-                break
-        print(render_volume(vol))
-        print('Listing volumes')
-        vols = {
-            'cinderclient': cinder.volumes.list(),
-            'novaclient': nova.volumes.list()
-        }
-        pprint(vols)
-        print('Deleting volume')
-        vol.delete()
+        vol_obj = None
+        try:
+            vol_obj = cinder.volumes.create(**vol)
+            for state in poll_volume(vol_obj, interval=3, limit=5):
+                if str(state.status).lower() == 'available' \
+                    and hasattr(vol, 'os-vol-tenant-attr:tenant_id'):
+                    break
+            print(render_volume(vol_obj))
+            print('Listing volumes')
+            vols = {
+                'cinderclient': cinder.volumes.list(),
+                'novaclient': nova.volumes.list()
+            }
+            pprint(vols)
+            print('Deleting volume')
+            vol_obj.delete()
+        except cinderclient.exceptions.OverLimit, e:
+            print('Error: {}'.format(e))
+
         try:
             # wait for volume to leave 'deleting' state
-            for state in poll_volume(vol): pass
-        except exceptions.NotFound:
+            for state in poll_volume(vol_obj): pass
+        except novaclient.exceptions.NotFound:
             print('* volume deleted')
+        except Exception, e:
+            print(e)
+
         print('Listing volumes')
         vols = {
             'cinderclient': cinder.volumes.list(),
@@ -105,7 +85,7 @@ if __name__ == '__main__':
         pprint(vols)
 
     print('Initial Auth Info:')
-    for authtype, params in initial_auth_info(ks.auth.client.session):
+    for authtype, params in utils.initial_auth_info(ks.auth.client.session):
         print(' %s' % authtype)
         print('  %s' % params)
     dump_accessinfo()
