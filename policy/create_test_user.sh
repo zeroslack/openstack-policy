@@ -11,7 +11,7 @@ load_config(){
 	fi
 }
 
-roles=( provisioner service )
+roles=( service )
 project_name='utility' # should this be same as service project
 password='test'
 load_config

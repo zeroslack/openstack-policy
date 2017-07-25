@@ -6,7 +6,7 @@ if __name__ == '__main__':
     from pbr.version import VersionInfo
     print('python-keystoneclient: %s' % VersionInfo('python-keystoneclient'))
 
-    roles = ['provisioner', 'service']
+    roles = ['service']
     # list out role inferences
     # print(ks.roles.list_inference_roles(name=rolename))
     # add role
