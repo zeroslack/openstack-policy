@@ -1,0 +1,4 @@
+project_names = ['utility']
+user_names = ['trustee1', 'service_admin']
+role_names = ['service']
+service_group_name = 'service_users'
