@@ -5,10 +5,10 @@ from ks_auth import sess
 from ks_auth import trust_auth
 from ks_auth import utils
 from novaclient import client as nclient
-from novaclient import exceptions
 from pprint import pprint
 from time import sleep
 from utils import *
+import cinderclient.exceptions
 import sys
 
 
@@ -29,8 +29,12 @@ if __name__ == '__main__':
         args = {'tenant_id': tenant_id}
         info = {
             'novaclient': nova.quotas.get(**args).__dict__,
-            'cinderclient': cinder.quotas.get(**args).__dict__,
         }
+        try:
+            info['cinderclient'] = cinder.quotas.get(**args).__dict__
+        except cinderclient.exceptions.Forbidden, e:
+            print(e)
+
         pprint(info)
 
     print('Initial Auth Info:')
