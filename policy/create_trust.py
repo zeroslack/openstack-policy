@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 from ks_auth import ks
 import sys
-import config
 
 if __name__ == '__main__':
     try:
