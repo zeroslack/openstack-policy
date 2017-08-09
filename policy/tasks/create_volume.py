@@ -12,6 +12,8 @@ from novaclient import exceptions
 from pprint import pprint
 from time import sleep
 from utils import *
+from pbr.version import SemanticVersion
+from pbr.version import VersionInfo
 import sys
 
 VERSION = '2'
@@ -45,10 +47,20 @@ if __name__ == '__main__':
             'size': 1
         }
         vol.update(extras)
+
+        MAX_SEMVER = SemanticVersion(major=3, minor=4, patch=0)
+        semver = VersionInfo('python-novaclient').semantic_version()
+        def list_nova_volumes():
+            """Conditional on python-novaclient <= 3.3.0"""
+            return nova.volumes.list() if semver <= MAX_SEMVER else []
+
+        def get_nova_volume(volume_id):
+            pass
+
         print('Listing volumes')
         vols = {
             'cinderclient': cinder.volumes.list(),
-            'novaclient': nova.volumes.list()
+            'novaclient': list_nova_volumes(),
         }
         pprint(vols)
 
@@ -65,7 +77,7 @@ if __name__ == '__main__':
         print('Listing volumes')
         vols = {
             'cinderclient': cinder.volumes.list(),
-            'novaclient': nova.volumes.list()
+            'novaclient': list_nova_volumes(),
         }
         pprint(vols)
 
