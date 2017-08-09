@@ -30,3 +30,6 @@ render_volume = render_obj(
         'status'
     ]
 )
+
+def render_managed_obj(obj):
+    return obj._info
