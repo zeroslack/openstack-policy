@@ -28,10 +28,11 @@ if __name__ == '__main__':
     def test():
         args = {'tenant_id': tenant_id}
         info = {
-            'novaclient': nova.quotas.get(**args).__dict__,
+            'novaclient': render_managed_obj(nova.quotas.get(**args)),
         }
         try:
-            info['cinderclient'] = cinder.quotas.get(**args).__dict__
+            res = render_managed_obj(cinder.quotas.get(**args))
+            info['cinderclient'] = res
         except cinderclient.exceptions.Forbidden, e:
             print(e)
 

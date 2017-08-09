@@ -44,7 +44,7 @@ if __name__ == '__main__':
             results = {}
             for key, client in _clients.iteritems():
                 try:
-                    results[key] = _filter_keys(client.quotas.get(**args).__dict__)
+                    results[key] = render_managed_obj(client.quotas.get(**args))
                 except FORBIDDEN_EXCEPTIONS, e:
                     results[key] = None
                     print('Error [{}]: {}'.format(key, e))
