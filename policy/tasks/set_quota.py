@@ -34,7 +34,7 @@ if __name__ == '__main__':
         }
         def _get_info():
             def _filter_keys(hash):
-                keys = ['_info', '_loaded', 'manager']
+                keys = ['id', '_info', '_loaded', 'manager']
                 l = list(hash.iteritems())
                 return dict(filter(lambda x: x[0] not in keys, l))
 
@@ -44,7 +44,8 @@ if __name__ == '__main__':
             results = {}
             for key, client in _clients.iteritems():
                 try:
-                    results[key] = render_managed_obj(client.quotas.get(**args))
+                    rendered = render_managed_obj(client.quotas.get(**args))
+                    results[key] = _filter_keys(rendered)
                 except FORBIDDEN_EXCEPTIONS, e:
                     results[key] = None
                     print('Error [{}]: {}'.format(key, e))
