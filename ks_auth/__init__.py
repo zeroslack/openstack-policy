@@ -11,12 +11,12 @@ except ImportError:
 
 username = environ.get('OS_USERNAME')
 auth_args = {
-        'user_domain_name': environ.get('OS_USER_DOMAIN_NAME'),
-        'project_domain_name': environ.get('OS_PROJECT_DOMAIN_NAME'),
-        'project_name': environ.get('OS_PROJECT_NAME',environ.get('OS_TENANT_NAME')),
-        'auth_url': environ.get('OS_AUTH_URL'),
-        'password': environ.get('OS_PASSWORD'),
-        'username': username,
+    'user_domain_name': environ.get('OS_USER_DOMAIN_NAME'),
+    'project_domain_name': environ.get('OS_PROJECT_DOMAIN_NAME'),
+    'project_name': environ.get('OS_PROJECT_NAME',environ.get('OS_TENANT_NAME')),
+    'auth_url': environ.get('OS_AUTH_URL'),
+    'password': environ.get('OS_PASSWORD'),
+    'username': username,
 }
 
 plugin = v3.Password
@@ -37,3 +37,10 @@ except KeyError:
 auth = plugin(**auth_args)
 sess = Session(auth=auth)
 ks = client.Client(session=sess)
+
+# Use this to ignore warnings
+if os.environ.get('IGNORE_SSL_WARNINGS', None):
+    import urllib3
+    warnings = (urllib3.exceptions.InsecurePlatformWarning,
+            urllib3.exceptions.SNIMissingWarning,)
+    urllib3.disable_warnings(warnings)
