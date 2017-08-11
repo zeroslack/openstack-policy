@@ -6,18 +6,22 @@ if __name__ == '__main__':
     try:
         trustee_id = sys.argv[1]
     except IndexError:
-        sys.exit('Supply a trustee id')
+        sys.exit('{} trustee_id [project_id]...'
+                 ''.format(sys.argv[0].split('/')[-1]))
 
-    projects = ks.auth.projects()
-    names = map(lambda x: x.name, projects)
-    print('Available projects: %s' % names)
+    projects = sys.argv[2:]
+    if not len(projects):
+        sys.stderr.write('No projects specified. Creating trust on all.\n')
+        projects = ks.auth.projects()
+        names = map(lambda x: x.name, projects)
+        print('Available projects: %s' % names)
 
     # Make sure to match authenticated user
     trustor = ks.auth.client.get_user_id()
     impersonate = False
 
     for project in projects:
-        project_id = project.id
+        project_id = project.id if hasattr(project, 'id') else project
         args = {
             'trustee_user': trustee_id,
             'trustor_user': trustor,
