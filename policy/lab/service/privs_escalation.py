@@ -48,6 +48,8 @@ def req_info(req):
     token_info = req.environ['keystone.token_info']
     # NB(kamidzi): cannot use auth._session as auth._session.auth,
     # required by Discovery, is None
+    from discover import _do_discover
+    _do_discover(session=SESSION, auth=auth)
     ks = ks_client.Client('3', session=SESSION, auth=auth)
     user_id = ks.auth.client.get_user_id()
     ret = {'auth': auth.user._data, 'token_info': token_info}
