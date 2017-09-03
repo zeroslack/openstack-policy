@@ -43,8 +43,7 @@ except Exception, e:
 SESSION = session.Session(auth=auth)
 ADMIN_ROLE_NAME = u'Admin'
 
-
-def list_trusts(req):
+def req_info(req):
     auth = req.environ['keystone.token_auth']
     token_info = req.environ['keystone.token_info']
     # NB(kamidzi): cannot use auth._session as auth._session.auth,
@@ -70,7 +69,7 @@ def list_trusts(req):
 
 @webob.dec.wsgify
 def app(req):
-    resp = list_trusts(req)
+    resp = req_info(req)
     return webob.Response(json.dumps(resp))
 
 
@@ -91,6 +90,6 @@ if __name__ == '__main__':
     app = auth_token.AuthProtocol(app, {})
     # See https://github.com/openstack/keystonemiddleware/blob/4.14.0/keystonemiddleware/auth_token/__init__.py#L663
     print('App credentials: %s' % render_auth(app._auth))
-
+    app._conf.oslo_conf_obj.log_opt_values(logger, logging.DEBUG)
     server = simple_server.make_server('', PORT, app)
     server.serve_forever()
