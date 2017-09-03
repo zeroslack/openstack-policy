@@ -6,7 +6,11 @@ dir=${_bin%/*}
 
 PATH=/bin:/usr/bin:/sbin:/usr/sbin:$dir
 
-set -x 
-create_test_user.sh | tee openrc
+set -ex
+if [[ ! -r openrc ]]; then
+  set -o pipefail
+  create_test_user.sh | ( tee openrc ; [[ -s openrc ]] || rm -f openrc )
+fi
+
 . /root/adminrc && python rbp.py
 create_test_instances.sh
