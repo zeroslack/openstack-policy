@@ -12,7 +12,7 @@ debtcollector==1.15.0
 deprecation==1.0.1
 falcon==1.2.0
 funcsigs==1.0.2
-functools32==3.2.3-2
+functools32==3.2.3.post2
 httpie==0.9.9
 idna==2.5
 iso8601==0.1.11
@@ -61,3 +61,10 @@ urllib3==1.21.1
 warlock==1.2.0
 wrapt==1.10.10
 wsgiref==0.1.2
+## The following requirements were added by pip freeze:
+click==6.7
+Flask==0.12.2
+itsdangerous==0.24
+Jinja2==2.9.6
+MarkupSafe==1.0
+Werkzeug==0.12.2

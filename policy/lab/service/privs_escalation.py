@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 from keystoneauth1 import loading
 from keystoneauth1 import session
 import keystoneauth1.identity
@@ -12,6 +11,8 @@ import logging
 import os
 import sys
 import webob.dec
+from flask import Flask
+from flask import request
 
 CONF = cfg.CONF
 CONF(project='privs_escalation')
@@ -43,6 +44,8 @@ except Exception, e:
 SESSION = session.Session(auth=auth)
 ADMIN_ROLE_NAME = u'Admin'
 
+app = Flask(__name__)
+
 def req_info(req):
     auth = req.environ['keystone.token_auth']
     token_info = req.environ['keystone.token_info']
@@ -67,11 +70,11 @@ def req_info(req):
     return ret
 
 
-@webob.dec.wsgify
-def app(req):
+@app.route('/auth_info')
+def auth_info():
+    req = request
     resp = req_info(req)
-    return webob.Response(json.dumps(resp))
-
+    return json.dumps(resp)
 
 def render_auth(auth):
     if isinstance(auth, keystoneauth1.identity.generic.password.Password):
@@ -87,9 +90,11 @@ if __name__ == '__main__':
     logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
     logger = logging.getLogger(cfg.CONF.project)
 
-    app = auth_token.AuthProtocol(app, {})
+    middleware = auth_token.AuthProtocol(app.wsgi_app, {})
+    app.wsgi_app = middleware
     # See https://github.com/openstack/keystonemiddleware/blob/4.14.0/keystonemiddleware/auth_token/__init__.py#L663
-    print('App credentials: %s' % render_auth(app._auth))
-    app._conf.oslo_conf_obj.log_opt_values(logger, logging.DEBUG)
+    print('App credentials: %s' % render_auth(middleware._auth))
+    middleware._conf.oslo_conf_obj.log_opt_values(logger, logging.DEBUG)
+    # Just serve it simply
     server = simple_server.make_server('', PORT, app)
     server.serve_forever()

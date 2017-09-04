@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+import keystoneauth1.identity
 from keystoneauth1 import loading
 from keystoneauth1 import session
 from keystoneclient import client as ks_client
@@ -10,10 +10,12 @@ import json
 import logging
 import os
 import sys
-import webob.dec
+from flask import Flask
+from flask import request
+
 
 CONF = cfg.CONF
-CONF(project='trust_service')
+CONF(project='trusts_delegation')
 loading.session.register_conf_options(cfg.CONF, 'communication')
 vars = filter(lambda x: x[0].startswith('OS_'), os.environ.iteritems())
 conf_keys = CONF.keys()
@@ -41,6 +43,17 @@ except Exception, e:
 # Initial session is for service user
 SESSION = session.Session(auth=auth)
 
+app = Flask(__name__)
+
+def render_auth(auth):
+    if isinstance(auth, keystoneauth1.identity.generic.password.Password):
+        ret = {
+            'project': auth._project_name,
+            'username': auth._username,
+        }
+        return ret
+    return None
+
 def list_trusts(req):
     auth = req.environ['keystone.token_auth']
     ks = ks_client.Client('3', session=SESSION, auth=auth)
@@ -59,17 +72,21 @@ def list_trusts(req):
         ret[key] = map(render_trust, ks.trusts.list(**args))
     return  {'trusts': ret}
 
-@webob.dec.wsgify
-def app(req):
-    resp = list_trusts(req)
-    return webob.Response(json.dumps(resp))
+@app.route('/')
+def index():
+    resp = list_trusts(request)
+    return json.dumps(resp)
 
 PORT = 5150
-if __name__ == '__main__':
+def main():
     logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
     logger = logging.getLogger(cfg.CONF.project)
 
-    app = auth_token.AuthProtocol(app,{})
+    middleware = auth_token.AuthProtocol(app.wsgi_app, {})
+    app.wsgi_app = middleware
+    # See https://github.com/openstack/keystonemiddleware/blob/4.14.0/keystonemiddleware/auth_token/__init__.py#L663
+    print('App credentials: %s' % render_auth(middleware._auth))
+    middleware._conf.oslo_conf_obj.log_opt_values(logger, logging.DEBUG)
+    # Just serve it simply
     server = simple_server.make_server('', PORT, app)
-    server.handle_request()
-    #server.serve_forever()
+    server.serve_forever()
