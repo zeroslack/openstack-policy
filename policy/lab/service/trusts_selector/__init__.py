@@ -12,6 +12,8 @@ import os
 import sys
 from flask import Flask
 from flask import request
+from flask import render_template
+from flask_bootstrap import Bootstrap
 
 
 CONF = cfg.CONF
@@ -44,6 +46,7 @@ except Exception, e:
 SESSION = session.Session(auth=auth)
 
 app = Flask(__name__)
+Bootstrap(app)
 
 def render_auth(auth):
     if isinstance(auth, keystoneauth1.identity.generic.password.Password):
@@ -75,7 +78,8 @@ def list_trusts(req):
 @app.route('/')
 def index():
     resp = list_trusts(request)
-    return json.dumps(resp)
+    #return json.dumps(resp)
+    return render_template('index.html')
 
 PORT = 5150
 def main():
