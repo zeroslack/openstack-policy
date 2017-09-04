@@ -81,6 +81,17 @@ def index():
     #return json.dumps(resp)
     return render_template('index.html')
 
+@app.route('/token_info')
+def render_token_info():
+    kwargs = {
+      'token_info': token_info(),
+      'json': json
+    }
+    return render_template('token_info.html', **kwargs)
+
+def token_info():
+    return request.environ['keystone.token_info']
+
 PORT = 5150
 def main():
     logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
