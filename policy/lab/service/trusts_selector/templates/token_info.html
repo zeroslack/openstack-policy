@@ -1,0 +1,26 @@
+{% extends "bootstrap/base.html" %}
+{% block title %}AuthToken Information{% endblock %}
+
+{% block navbar %}
+<div class="navbar navbar-fixed-top">
+  <!-- ... -->
+</div>
+{% endblock %}
+
+{% block content %}
+  <h1>Token Info</h1>
+
+ <div class="row">
+    <table class="table table-striped">
+      <tbody>
+        {% for k,v in token_info['token'].iteritems() %}
+        <tr>
+          <td>{{ k }}</td>
+          <td><pre>{{ json.dumps(v, indent=2) }}</pre></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
