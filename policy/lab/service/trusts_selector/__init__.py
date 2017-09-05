@@ -77,9 +77,9 @@ def list_trusts(req):
 
 @app.route('/')
 def index():
-    resp = list_trusts(request)
+    trusts = list_trusts(request)
     #return json.dumps(resp)
-    return render_template('index.html')
+    return render_template('index.html', json=json, trusts=trusts)
 
 @app.route('/token_info')
 def render_token_info():

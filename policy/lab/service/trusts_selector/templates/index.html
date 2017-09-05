@@ -9,4 +9,32 @@
 
 {% block content %}
   <h1>Trusts Selector Service</h1>
+{#
+{"trusts": {"as_trustor": [{"impersonation": false, "project_id": "1dbf17aeedd54374b085526d2ed22ff5", "trustor_user_id": "bf47e8b62e164f588d7affaa3e2da525", "links": {"self": "https://openstack.bcpc.example.com:5000/v3/OS-TRUST/trusts/c5f2f984913141879394f3c7637a11ab"}, "redelegation_count": 0, "remaining_uses": null, "expires_at": null, "trustee_user_id": "cf6083d5fa544d61927872474ac470ed", "deleted_at": null, "id": "c5f2f984913141879394f3c7637a11ab"}], "as_trustee": []}}
+#}
+    <table class="table table-striped">
+      <thead>
+          <th><h2> As Trustor </h2></th>
+      </thead>
+      <tbody>
+        {% for t in trusts['trusts']['as_trustor'] %}
+        <tr>
+          <td><pre>{{t.id}}</pre></td>
+          <td><pre>{{ json.dumps(t, indent=2) }}</pre></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <h2>As Trustee</h2>
+      <table class="table table-striped">
+        <tbody>
+          {% for t in trusts['trusts']['as_trustee'] %}
+          <tr>
+            <td>{{t.id}}</td>
+            <td><pre>{{ json.dumps(t, indent=2) }}</pre></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
 {% endblock %}
